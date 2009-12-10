@@ -83,10 +83,7 @@ class MingleClient():
         action = str(raw_input('* a:'))
         
         if (action == 'd'):
-            self.dead = True
-            r = url.urlopen('http://omegle.com/disconnect', '&id='+self.id)
-            print "Disconnected"
-            print r.read()
+            self.disconnect()
             
         elif (action == 't'):
             typing = url.urlopen('http://omegle.com/typing', '&id='+self.id)
@@ -100,6 +97,12 @@ class MingleClient():
             
         else:
             print "unknown command. Use d to disconnect, and t to chat"
+
+    def disconnect(self):
+        self.dead = True
+        r = url.urlopen('http://omegle.com/disconnect', '&id='+self.id)
+        print "Disconnected"
+        print r.read()
 
 
 if __name__ == '__main__':
