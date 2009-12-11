@@ -20,13 +20,13 @@ class MingleThread( threading.Thread ):
             rec = site.read()
             self.handleEvents(rec)
             
-            if (c.dead):
+            if (self.client.dead):
                 break
             
             stoptime=time.clock()
-            print "* events: %.3f seconds" % (stoptime-starttime)
+            #print "* events: %.3f seconds" % (stoptime-starttime)
             
-            time.sleep(2)
+            time.sleep(3)
     
     def handleEvents(self, events):
         io = StringIO(events)
@@ -44,30 +44,45 @@ class MingleThread( threading.Thread ):
             action = event[0]
             
             if action == "waiting":
-                print "Looking for someone you can chat with. Hang on."
+                print "*", self.client.name, "Looking for someone you can chat with. Hang on."
 
             elif action == "connected":
-                print "You're now chatting with a random stranger. Say hi!"
+                print "*", self.client.name, "You're now chatting with a random stranger. Say hi!"
 
             elif action == "gotMessage":
-                print "Stranger: " , event[1]
+                if self.client.stranger:
+                    self.client.stranger.talk(event[1])
+                else:
+                    print "Stranger: " , event[1]
 
             elif action == "strangerDisconnected":
-                print "Your conversational partner has disconnected."
+                print "*", self.client.name, "Your conversational partner has disconnected."
+                if self.client.stranger:
+                    self.client.stranger.disconnect()
             
             elif action == "typing":
-                print "Stranger is typing..."
+                #print "* Stranger is typing..."
+                if self.client.stranger:
+                    self.client.stranger.typing()
 
             elif action == "stoppedTyping":
-                print "Stranger stopped typing..."
+                #print "* Stranger stopped typing..."
+                if self.client.stranger:
+                    self.client.stranger.stopTyping()
                 
             else:
-                print "** Unknown event"
+                print "*", self.client.name, "** Unknown event"
                 print event
             
-        
-
+                
 class MingleClient():
+    def __init__(self, name):
+        self.name = name
+        self.stranger = False
+    
+    def setStranger(self, stranger):
+        self.stranger = stranger
+        
     def connect(self):
         # Connect and get our id
         site = url.urlopen('http://omegle.com/start','')
@@ -79,41 +94,46 @@ class MingleClient():
         # Create request object for events
         self.req = url.Request('http://omegle.com/events', urllib.urlencode( {'id':self.id}))
     
-    def talk(self):        
-        action = str(raw_input('* a:'))
+    def talk(self, msg):        
+        print self.name, ": ", msg
+        r = url.urlopen('http://omegle.com/send', "&" + urllib.urlencode( {'msg': msg, 'id':self.id}))
+        r.close()
         
-        if (action == 'd'):
-            self.disconnect()
-            
-        elif (action == 't'):
-            typing = url.urlopen('http://omegle.com/typing', '&id='+self.id)
-            typing.close()
-            
-            msg = str(raw_input('* t: '))
-            
-            print "You: " , msg
-            r = url.urlopen('http://omegle.com/send', '&msg='+msg+'&id='+self.id)
-            r.close()
-            
-        else:
-            print "unknown command. Use d to disconnect, and t to chat"
+    def typing(self):
+        typing = url.urlopen('http://omegle.com/typing', '&id='+self.id)
+        typing.close()
+    
+    def stopTyping(self):
+        typing = url.urlopen('http://omegle.com/stoppedtyping', '&id='+self.id)
+        typing.close()
 
     def disconnect(self):
         self.dead = True
         r = url.urlopen('http://omegle.com/disconnect', '&id='+self.id)
         print "Disconnected"
         print r.read()
+        r.close()
 
 
 if __name__ == '__main__':
-    c = MingleClient()
+    c = MingleClient("You")
     c.connect()
     
     t = MingleThread(c)
     t.start()
     
     while True:
-        c.talk()
+        msg = str(raw_input(''))
+        
+        if msg == 'd':
+            c.disconnect()
+        elif msg == 't':
+            c.typing()
+        elif msg == 'c':
+            c.connect()
+        else:
+            c.talk(msg)
+            
         if (c.dead):
             break
     
