@@ -36,7 +36,8 @@ class MingleThread( threading.Thread ):
             for event in j:
                 self.handleEvent(event)
         else:
-            print "* Could not parse events"
+            self.client.dead = True
+            print "* Could not parse events. Killed " + self.client.name
             print events
             
     def handleEvent(self, event):
