@@ -26,7 +26,7 @@ class MingleThread( threading.Thread ):
             stoptime=time.clock()
             #print "* events: %.3f seconds" % (stoptime-starttime)
             
-            time.sleep(3)
+            time.sleep(2)
     
     def handleEvents(self, events):
         io = StringIO(events)
@@ -95,7 +95,8 @@ class MingleClient():
         self.req = url.Request('http://omegle.com/events', urllib.urlencode( {'id':self.id}))
     
     def talk(self, msg):        
-        print self.name, ": ", msg
+        print self.name + ": " + msg
+        
         r = url.urlopen('http://omegle.com/send', "&" + urllib.urlencode( {'msg': msg, 'id':self.id}))
         r.close()
         
