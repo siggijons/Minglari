@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 import threading
 import time
 import urllib2 as url

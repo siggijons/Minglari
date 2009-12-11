@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 from mingle import MingleClient, MingleThread
 import time
 
@@ -40,9 +41,5 @@ while True:
         print "You as both: ", msg
         a.talk(msg)
         b.talk(msg)
-        
-    elif action == 'c': 
-        a.connect()
-        b.connect()
         
     time.sleep(5)
